@@ -48,7 +48,7 @@ public class GerenteController {
         return ResponseEntity.ok(mensaje);
     }
 
-    @PostMapping("/{registrar}")
+    @PostMapping("/registrar")
     public ResponseEntity<?> saveGerente(@RequestBody Gerente gerente) {
         Gerente gerenteGuardado = gerenteService.save(gerente);
 
