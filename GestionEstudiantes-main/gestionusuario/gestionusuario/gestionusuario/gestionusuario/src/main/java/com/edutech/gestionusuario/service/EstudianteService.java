@@ -7,6 +7,7 @@ import com.edutech.gestionusuario.repository.EstudianteRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -84,29 +85,38 @@ public class EstudianteService {
         }
     }
 
-public String ObtenerCursosEstudiante(Integer id_curso){
-    String CursoUrl = "http://localhost:8081/api/v1/cursos/obtener/" + id_curso;
-    String cursoData = restTemplate.getForObject(CursoUrl, String.class);
-    List<Estudiante> estudiantes = estudianteRepository.findAllByidCurso(id_curso);
 
-    if(cursoData == null){
-        return "El curso no existe.";
-    } else {
-        StringBuilder resultado = new StringBuilder();
-        resultado.append("=== INFORMACIÓN DEL CURSO ===\n");
-        resultado.append(cursoData).append("\n\n");
-        resultado.append("=== ESTUDIANTES INSCRITOS ===\n");
-        
-        for (Estudiante e : estudiantes) {
-            resultado.append("\n- Nombre: ").append(e.getPnombre()).append(" ").append(e.getAppaterno())
-                    .append("\n  RUN: ").append(e.getRun())
-                    .append("\n  Correo: ").append(e.getCorreo())
-                    .append("\n  Calificación: ").append(e.getCalificacion())
-                    .append("\n  Promedio: ").append(e.getPromCalificaciones())
-                    .append("\n  Asistencia: ").append(e.getPorcAsistencia()).append("%\n");
-        }
-        
-        return resultado.toString();
+    public String ObtenerCursosEstudiante(Integer id_curso){
+        try {
+            String CursoUrl = "http://localhost:8081/api/v1/cursos/obtener/" + id_curso;
+            String cursoData = restTemplate.getForObject(CursoUrl, String.class);
+            List<Estudiante> estudiantes = estudianteRepository.findAllByidCurso(id_curso);
+
+            if(cursoData == null){
+                return "El curso no existe.";
+            } else {
+                StringBuilder resultado = new StringBuilder();
+                resultado.append("=== INFORMACIÓN DEL CURSO ===\n");
+                resultado.append(cursoData).append("\n\n");
+                resultado.append("=== ESTUDIANTES INSCRITOS ===\n");
+
+                if(estudiantes.isEmpty()) {
+                    resultado.append("\nNo hay estudiantes inscritos en este curso.");
+                } else {
+                    for (Estudiante e : estudiantes) {
+                        resultado.append("\n- Nombre: ").append(e.getPnombre()).append(" ").append(e.getAppaterno())
+                                .append("\n  RUN: ").append(e.getRun())
+                                .append("\n  Correo: ").append(e.getCorreo())
+                                .append("\n  Calificación: ").append(e.getCalificacion())
+                                .append("\n  Promedio: ").append(e.getPromCalificaciones())
+                                .append("\n  Asistencia: ").append(e.getPorcAsistencia()).append("%\n");
+                    }
+                }
+
+                return resultado.toString();
+            }
+        } catch (Exception e) {
+            return "Error al obtener la información del curso, el curso " + id_curso + " no existe";
         }
     }
 
